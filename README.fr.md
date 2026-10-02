@@ -12,6 +12,8 @@
 
 Ces liens décrivent des projets voisins, sans affiliation.
 
+Exécutez `node bin/mcp-event-check.js compare --lang fr --json` pour comparer le SDK publié à un transport témoin isolé avec la même notification injectée. Le témoin est synthétique et ne prouve pas qu’une version plus récente du SDK est corrigée.
+
 ## Essayer
 
 ```sh
@@ -41,4 +43,4 @@ Test du transport en processus avec un événement navigateur simulé. Il ne tes
 npm test
 ```
 
-MIT · v0.1.0-alpha.1
+MIT · v0.1.1

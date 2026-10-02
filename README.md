@@ -23,6 +23,8 @@ node bin/mcp-event-check.js demo --lang en
 
 Runs an injected two-listener notification against the published `@openai/mcp-extensions@0.1.0` transport. `demo` prints the result; `check` exits 1 when isolation fails, for CI.
 
+Run `node bin/mcp-event-check.js compare --lang en --json` to compare the published SDK against an isolated control transport using the same injected notification. The control is synthetic; it does not assert that a newer SDK is fixed.
+
 ## Use with your data
 
 ```sh
@@ -41,4 +43,4 @@ This is an in-process transport test with a mock browser message event. It does 
 npm test
 ```
 
-MIT · v0.1.0-alpha.1
+MIT · v0.1.1
