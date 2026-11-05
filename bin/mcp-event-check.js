@@ -8,7 +8,12 @@ const copy = {
   es: { title: 'Comprobación de eventos MCP', good: 'El segundo listener recibió la notificación.', bad: 'El error del primero bloqueó al segundo listener.', failed: 'El primer listener falló como estaba previsto.', comparison: 'El transporte de control aísla al segundo listener.', usage: 'Uso: mcp-event-check [demo|check|compare] [--lang en|fr|es] [--json]' }
 };
 
-export async function probe(factory = createAppTransport) {
+let probeTail=Promise.resolve();
+export function probe(factory = createAppTransport){
+ const result=probeTail.then(()=>runProbe(factory));probeTail=result.catch(()=>{});return result;
+}
+async function runProbe(factory) {
+  const owned=Object.hasOwn(globalThis,"window");
   const before = globalThis.window;
   const handlers = new Map();
   const parent = { postMessage() {} };
@@ -33,9 +38,8 @@ export async function probe(factory = createAppTransport) {
     }
     return { firstThrew, secondReceived, isolated: firstThrew && secondReceived };
   } finally {
-    transport?.dispose();
-    if (before === undefined) delete globalThis.window;
-    else globalThis.window = before;
+    try { transport?.dispose(); }
+    finally { if (!owned) delete globalThis.window; else globalThis.window = before; }
   }
 }
 
