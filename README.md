@@ -44,3 +44,12 @@ npm test
 ```
 
 MIT · v0.1.1
+
+
+## 2026-11-05 — FR / EN / ES
+
+FR : Les appels concurrents de `probe()` sont sérialisés dans ce processus pour ne pas mélanger les faux window de transport. Le window initial est restauré même si dispose échoue ; un échec ne bloque pas la sonde suivante. Test local du SDK, aucun serveur MCP externe ni appel OpenAI.
+
+EN: Concurrent `probe()` calls serialize within this process to avoid mixing transport window fixtures. Original window is restored even if dispose fails; failure does not block the next probe. Local SDK test, no external MCP server or OpenAI call.
+
+ES: Llamadas concurrentes a `probe()` se serializan en el proceso para no mezclar fixtures window. Restaura window original aunque dispose falle; fallo no bloquea siguiente sonda. Prueba local SDK, sin servidor MCP externo ni llamada OpenAI.

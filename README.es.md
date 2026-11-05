@@ -44,3 +44,6 @@ npm test
 ```
 
 MIT · v0.1.1
+
+
+Las sondas concurrentes se serializan y window se restaura incluso tras error de dispose. Validación local, sin servidor externo.

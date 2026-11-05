@@ -44,3 +44,6 @@ npm test
 ```
 
 MIT · v0.1.1
+
+
+Les sondes concurrentes sont sérialisées et window est restauré même après une erreur de dispose. Validation locale, sans serveur externe.
