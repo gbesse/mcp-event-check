@@ -3,9 +3,9 @@ import { createAppTransport } from '@openai/mcp-extensions/app/transport';
 import { pathToFileURL } from 'node:url';
 
 const copy = {
-  en: { title: 'MCP event listener check', good: 'Second listener received the notification.', bad: 'Second listener was blocked by the first error.', failed: 'The first listener threw as planned.', comparison: 'Control transport isolates the second listener.', usage: 'Usage: mcp-event-check [demo|check|compare] [--lang en|fr|es] [--json]' },
-  fr: { title: 'Contrôle des événements MCP', good: 'Le second listener a reçu la notification.', bad: 'L’erreur du premier a bloqué le second listener.', failed: 'Le premier listener a échoué comme prévu.', comparison: 'Le transport témoin isole le second listener.', usage: 'Usage : mcp-event-check [demo|check|compare] [--lang en|fr|es] [--json]' },
-  es: { title: 'Comprobación de eventos MCP', good: 'El segundo listener recibió la notificación.', bad: 'El error del primero bloqueó al segundo listener.', failed: 'El primer listener falló como estaba previsto.', comparison: 'El transporte de control aísla al segundo listener.', usage: 'Uso: mcp-event-check [demo|check|compare] [--lang en|fr|es] [--json]' }
+  en: { title: 'MCP event listener check', good: 'Second listener received the notification.', bad: 'Second listener was blocked by the first error.', failed: 'The first listener threw as planned.', comparison: 'Control transport isolates the second listener.', usage: 'Usage: mcp-event-check [demo|check|compare|lifecycle] [--lang en|fr|es] [--json]' },
+  fr: { title: 'Contrôle des événements MCP', good: 'Le second listener a reçu la notification.', bad: 'L’erreur du premier a bloqué le second listener.', failed: 'Le premier listener a échoué comme prévu.', comparison: 'Le transport témoin isole le second listener.', usage: 'Usage : mcp-event-check [demo|check|compare|lifecycle] [--lang en|fr|es] [--json]' },
+  es: { title: 'Comprobación de eventos MCP', good: 'El segundo listener recibió la notificación.', bad: 'El error del primero bloqueó al segundo listener.', failed: 'El primer listener falló como estaba previsto.', comparison: 'El transporte de control aísla al segundo listener.', usage: 'Uso: mcp-event-check [demo|check|compare|lifecycle] [--lang en|fr|es] [--json]' }
 };
 
 let probeTail=Promise.resolve();
@@ -56,14 +56,33 @@ export function isolatedControlTransport() {
   };
 }
 
+
+export function probeLifecycle(factory=createAppTransport){
+ const result=probeTail.then(()=>runLifecycle(factory));probeTail=result.catch(()=>{});return result;
+}
+async function runLifecycle(factory){
+ const owned=Object.hasOwn(globalThis,'window'),before=globalThis.window,handlers=new Map(),parent={postMessage(){}};let transport,calls=0;
+ globalThis.window={parent,addEventListener(name,fn){handlers.set(name,fn);},removeEventListener(name){handlers.delete(name);}};
+ try{
+  transport=factory();const unsubscribe=transport.on('sample/changed',()=>{calls++;});if(typeof unsubscribe!=='function')throw new TypeError('Désinscription absente / Missing unsubscribe / Falta desuscripción');
+  const receive=handlers.get('message');if(typeof receive!=='function')throw new TypeError('Récepteur absent / Missing receiver / Falta receptor');const data={jsonrpc:'2.0',method:'sample/changed',params:{value:1}};
+  await receive({source:{},data});const foreignSourceIgnored=calls===0;await receive({source:parent,data});const parentDelivered=calls===1;unsubscribe();await receive({source:parent,data});const unsubscribedListenerSilent=calls===1;transport.dispose();transport=null;
+  return {foreignSourceIgnored,parentDelivered,unsubscribedListenerSilent,messageListenerRemoved:!handlers.has('message'),passed:foreignSourceIgnored&&parentDelivered&&unsubscribedListenerSilent&&!handlers.has('message'),actualBrowserHostExecuted:false};
+ }finally{try{transport?.dispose();}finally{if(owned)globalThis.window=before;else delete globalThis.window;}}
+}
+
 async function main(args) {
   const command = args[0] ?? 'demo';
   const langAt = args.indexOf('--lang');
   const lang = langAt >= 0 ? args[langAt + 1] : 'en';
-  if (!copy[lang] || !['demo', 'check', 'compare'].includes(command)) {
+  if (!copy[lang] || !['demo', 'check', 'compare', 'lifecycle'].includes(command)) {
     process.stderr.write(`${copy.en.usage}\n`);
     process.exitCode = 2;
     return;
+  }
+  if(command==='lifecycle'){
+   const result=await probeLifecycle();const heading={fr:'Cycle de vie des notifications MCP',en:'MCP notification lifecycle',es:'Ciclo de vida de notificaciones MCP'};
+   process.stdout.write(args.includes('--json')?JSON.stringify({sdk:'@openai/mcp-extensions@0.1.0',...result})+'\n':heading[lang]+'\n'+JSON.stringify(result,null,2)+'\n');if(!result.passed)process.exitCode=1;return;
   }
   const result = await probe();
   const control = command === 'compare' ? await probe(isolatedControlTransport) : undefined;

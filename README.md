@@ -53,3 +53,12 @@ FR : Les appels concurrents de `probe()` sont sérialisés dans ce processus pou
 EN: Concurrent `probe()` calls serialize within this process to avoid mixing transport window fixtures. Original window is restored even if dispose fails; failure does not block the next probe. Local SDK test, no external MCP server or OpenAI call.
 
 ES: Llamadas concurrentes a `probe()` se serializan en el proceso para no mezclar fixtures window. Restaura window original aunque dispose falle; fallo no bloquea siguiente sonda. Prueba local SDK, sin servidor MCP externo ni llamada OpenAI.
+
+
+## 2026-11-12 — FR / EN / ES
+
+FR : Tester le filtrage de source parent, la désinscription et la destruction du transport SDK réel via la commande lifecycle.
+
+EN: Test parent-source filtering unsubscribe and disposal in the actual SDK transport via lifecycle command.
+
+ES: Probar filtro de fuente padre desuscripción y destrucción del transporte SDK real con comando lifecycle.
